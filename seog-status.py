@@ -63,11 +63,15 @@ print(f"AC current: {ac_current}A")
 bat_voltage = int(s[6:8].hex(), 16) / 10
 print(f"Battery voltage: {bat_voltage}V")
 
-# This reports an absolute value, whether the battery is charging or
-# discharging. Its interpretation probably depends on the battery and
-# charging status fields below.
+# The current is reported as an absolute value, whether the battery is charging
+# or discharging. We interpret the value as negative if "battery status" is "y"
+# (I expected "charging status" to be the field that determines the sign, but
+# it's only "battery status" that I've seen vary so far.)
 
 bat_current = int(s[8:10].hex(), 16) / 10
+bat_status = chr(s[25])
+if bat_status == 'y':
+    bat_current *= -1
 print(f"Battery current: {bat_current}A")
 
 pv_voltage = int(s[10:12].hex(), 16) / 10
@@ -97,11 +101,8 @@ fault = chr(s[24])
 if fault != 'n':
     print(f"System fault: {fault}")
 
-# Does battery status 'y' indicate that the battery current value should be read
-# as negative?
-
-battery_status = chr(s[25])
-print(f"Battery status: {battery_status}")
+bat_status = chr(s[25])
+print(f"Battery status: {bat_status}")
 
 charging_status = chr(s[26])
 print(f"Charging status: {charging_status}")
