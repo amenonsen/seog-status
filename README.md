@@ -29,7 +29,7 @@ clear; see below.
     AC voltage: 229.6V
     AC current: 0.9A
     Battery voltage: 49.7V
-    Battery current: 9.9A
+    Battery current: -9.9A
     PV voltage: 7.9V
     PV current: 0.0A
     PV power: 0.0kW
@@ -38,6 +38,7 @@ clear; see below.
     PV units this month: 1.99kWh (uncertain)
     Battery status: y
     Charging status: B
+    PV under voltage: y
 
 ## Open questions
 
