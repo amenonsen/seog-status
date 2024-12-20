@@ -77,9 +77,10 @@ print(f"Battery voltage: {bat_voltage}V")
 # it's only "battery status" that I've seen vary so far.)
 
 bat_current = int(s[8:10].hex(), 16) / 10
-bat_status = chr(s[25])
-if bat_status == 'y':
-    bat_current *= -1
+if len(s) >= 24:
+    bat_status = chr(s[25])
+    if bat_status == 'y':
+        bat_current *= -1
 print(f"Battery current: {bat_current}A")
 
 pv_voltage = int(s[10:12].hex(), 16) / 10
