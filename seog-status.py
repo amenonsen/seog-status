@@ -51,8 +51,16 @@ print("<<< " + s.hex())
 status = chr(s[0])
 print(f"Inverter status: {status}")
 
+# 'B' means the load is on the grid (bypassing the inverter).
+#
+# 'F' means the load is on battery (at least) and/or solar (unsure).
+
 load = chr(s[1])
 print(f"Load on: {load}")
+
+# The AC voltage and current reported appear to be the inverter's output voltage
+# and current, i.e., correlated with the load on the inverter. If the load is on
+# the grid, bypassing the inverter, these values are close to 0.
 
 ac_voltage = int(s[2:4].hex(), 16) / 10
 print(f"AC voltage: {ac_voltage}V")
@@ -64,7 +72,7 @@ bat_voltage = int(s[6:8].hex(), 16) / 10
 print(f"Battery voltage: {bat_voltage}V")
 
 # The current is reported as an absolute value, whether the battery is charging
-# or discharging. We interpret the value as negative if "battery status" is "y"
+# or discharging. We interpret the value as negative if "battery status" is 'y'
 # (I expected "charging status" to be the field that determines the sign, but
 # it's only "battery status" that I've seen vary so far.)
 
