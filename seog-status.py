@@ -53,13 +53,28 @@ print("<<< " + s.hex())
 # 'I' means the inverter is switched off.
 
 status = chr(s[0])
+if status == 'R':
+    status = 'R (running)'
+elif status == 'I':
+    status = 'I (inactive)'
 print(f"Inverter status: {status}")
 
 # 'B' means the load is on the grid (bypassing the inverter).
 #
 # 'F' means the load is on battery (at least) and/or solar (unsure).
 
+bat_status = ''
+if len(s) >= 24:
+    bat_status = chr(s[25])
+
 load = chr(s[1])
+if load == 'B':
+    load = 'B (grid)'
+elif load == 'F':
+    if bat_status == 'y':
+        load = 'F (battery)'
+    else:
+        load = 'F (solar)'
 print(f"Load on: {load}")
 
 # The AC voltage and current reported appear to be the inverter's output voltage
@@ -81,10 +96,8 @@ print(f"Battery voltage: {bat_voltage}V")
 # it's only "battery status" that I've seen vary so far.)
 
 bat_current = int(s[8:10].hex(), 16) / 10
-if len(s) >= 24:
-    bat_status = chr(s[25])
-    if bat_status == 'y':
-        bat_current *= -1
+if bat_status == 'y':
+    bat_current *= -1
 print(f"Battery current: {bat_current}A")
 
 pv_voltage = int(s[10:12].hex(), 16) / 10
