@@ -48,6 +48,10 @@ print("<<< " + s.hex())
 # 36 Byte in Hex=6E               (System Over Load)
 # 37 Byte in Hex=6E               (System Switched)
 
+# 'R' means the inverter is switched on.
+#
+# 'I' means the inverter is switched off.
+
 status = chr(s[0])
 print(f"Inverter status: {status}")
 
