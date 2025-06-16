@@ -160,9 +160,6 @@ overload = chr(s[35])
 if overload != 'n':
     print(f"System overload: {overload}")
 
-# What does this mean? I thought it was "system switched on", but then it
-# shouldn't be returning 'n'.
-
 switched = chr(s[36])
 if switched != 'n':
-    print(f"System switched: {switched}")
+    print(f"Inverter switched off: {switched}")
