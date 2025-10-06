@@ -72,7 +72,7 @@ def parse(s):
 
         d['pv_voltage'] = int(s[10:12].hex(), 16) / 10
         d['pv_current'] = int(s[12:14].hex(), 16) / 10
-        d['pv_power'] = int(s[14:16].hex(), 16) / 1000
+        d['pv_power'] = int(s[14:16].hex(), 16)
 
         # I'm just guessing at the right scale for the total kWh field. (The
         # values I've seen reported for total/month seem inconsistent, so I'm
@@ -132,7 +132,7 @@ def print_verbose(s, d):
     print(f"Battery current: {d['bat_current']}A")
     print(f"PV voltage: {d['pv_voltage']}V")
     print(f"PV current: {d['pv_current']}A")
-    print(f"PV power: {d['pv_power']}kW")
+    print(f"PV power: {d['pv_power']}W")
     print(f"PV units today: {d['pv_units']:.2f}kWh")
     print(f"PV units total: {d['pv_total']:.2f}kWh (uncertain)")
     print(f"PV units this month: {d['pv_month']}kWh (uncertain)")
@@ -164,7 +164,7 @@ def print_short(s, d):
     l = f"status={d['status']}/{d['load']}/{d['bat_status']}/{d['charging_status']}"
     l += f", AC=({d['ac_voltage']:05.1f}V; {d['ac_current']:04.1f}A)"
     l += f", BAT=({d['bat_voltage']:04.1f}V; {d['bat_current']:05.1f}A)"
-    l += f", PV=({d['pv_voltage']:05.1f}V; {d['pv_current']:04.1f}A; {d['pv_power']:05.3}kW; {d['pv_units']:05.2f}kWh)"
+    l += f", PV=({d['pv_voltage']:05.1f}V; {d['pv_current']:04.1f}A; {d['pv_power']:04.0f}W; {d['pv_units']:05.2f}kWh)"
 
     flags = [
         'fault', 'inverter_uv', 'inverter_ov', 'battery_uv', 'battery_ov',
