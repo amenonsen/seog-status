@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 import sys
+import time
 import serial
+import argparse
+import datetime
 
 # Here's the example/explanation from Statcon Energiaa technical support:
 #
@@ -106,8 +109,9 @@ def parse(s):
 
     return d
 
-def print_verbose(s, d):
-    print("<<< " + s.hex())
+def print_verbose_desc(s, d):
+    print(">>>", datetime.datetime.now())
+    print("<<<", s.hex())
 
     status = d['status']
     if status == 'R':
@@ -160,7 +164,7 @@ def print_verbose(s, d):
     if d.get('switched_off', 'n') == 'y':
         print(f"Inverter switched off: y")
 
-def print_short(s, d):
+def short_desc(s, d):
     l = f"status={d['status']}/{d['load']}/{d['bat_status']}/{d['charging_status']}"
     l += f", AC=({d['ac_voltage']:5.1f}V; {d['ac_current']:4.1f}A)"
     l += f", BAT=({d['bat_voltage']:4.1f}V; {d['bat_current']:5.1f}A)"
@@ -178,20 +182,60 @@ def print_short(s, d):
     if d.get('switched_off', 'n') == 'y':
         l += f", switch=off"
 
-    print(l)
+    return l
 
 if __name__ == '__main__':
-    # Hardcoded to the device name that was assigned when I plugged in the
-    # serial-to-USB cable.
+    p = argparse.ArgumentParser(
+        prog='seog-status',
+    )
 
-    ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
-    ser.write(b'A')
-    s = ser.readline()
+    p.add_argument(
+        '-d', '--device',
+        default='/dev/ttyUSB0',
+        help="Read data from the given serial device"
+    )
+
+    p.add_argument(
+        '-s', '--short',
+        action='store_true',
+        help="Produce single-line output"
+    )
+
+    p.add_argument(
+        '-r', '--repeat',
+        type=int,
+        metavar="nsecs",
+        help="Repeat indefinitely after every <nsecs> seconds",
+    )
+
+    p.add_argument(
+        '-t', '--timestamp',
+        action='store_true',
+        help="Display timestamps before each output description"
+    )
+
+    args = p.parse_args()
+
+    ser = serial.Serial(args.device, 9600, timeout=1)
+
+    while True:
+        ser.write(b'A')
+        s = ser.readline()
+
+        data = parse(s)
+
+        if args.short:
+            if args.timestamp:
+                now = "[" + str(datetime.datetime.now()) + "]"
+                print(now, short_desc(s, data))
+            else:
+                print(short_desc(s, data))
+        else:
+            print_verbose_desc(s, data)
+
+        if not args.repeat:
+            break
+
+        time.sleep(args.repeat)
+
     ser.close()
-
-    data = parse(s)
-
-    if len(sys.argv) == 1:
-        print_verbose(s, data)
-    elif sys.argv[1] == '--short':
-        print_short(s, data)
