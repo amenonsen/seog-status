@@ -236,6 +236,7 @@ if __name__ == '__main__':
         if not args.repeat:
             break
 
+        sys.stdout.flush()
         time.sleep(args.repeat)
 
     ser.close()
