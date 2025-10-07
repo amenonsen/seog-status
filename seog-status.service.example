@@ -1,0 +1,10 @@
+[Unit]
+Description=Run seog-status
+After=network.target
+
+[Service]
+ExecStart=/home/pi/seog-status/seog-status.py --short --repeat 30
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
