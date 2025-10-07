@@ -162,9 +162,9 @@ def print_verbose(s, d):
 
 def print_short(s, d):
     l = f"status={d['status']}/{d['load']}/{d['bat_status']}/{d['charging_status']}"
-    l += f", AC=({d['ac_voltage']:05.1f}V; {d['ac_current']:04.1f}A)"
-    l += f", BAT=({d['bat_voltage']:04.1f}V; {d['bat_current']:05.1f}A)"
-    l += f", PV=({d['pv_voltage']:05.1f}V; {d['pv_current']:04.1f}A; {d['pv_power']:04.0f}W; {d['pv_units']:05.2f}kWh)"
+    l += f", AC=({d['ac_voltage']:5.1f}V; {d['ac_current']:4.1f}A)"
+    l += f", BAT=({d['bat_voltage']:4.1f}V; {d['bat_current']:5.1f}A)"
+    l += f", PV=({d['pv_voltage']:5.1f}V; {d['pv_current']:4.1f}A; {d['pv_power']:4.0f}W; {d['pv_units']:5.2f}kWh)"
 
     flags = [
         'fault', 'inverter_uv', 'inverter_ov', 'battery_uv', 'battery_ov',
