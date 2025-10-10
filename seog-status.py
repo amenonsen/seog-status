@@ -177,7 +177,7 @@ def print_verbose_desc(s, d):
         print(f"Inverter switched off: y")
 
 def short_desc(s, d):
-    l = f"status={d.get('status', '?')}/{d.get('load', '?')}/{d.get('bat_status','?')}/{d.get('charging_status')}"
+    l = f"status={d.get('status', '?')}/{d.get('load', '?')}/{d.get('bat_status','?')}/{d.get('charging_status', '?')}"
 
     l += f", AC=("
     if 'ac_voltage' in d:
