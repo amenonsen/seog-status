@@ -241,6 +241,9 @@ def short_desc(s, d):
     if d.get('switched_off', 'n') == 'y':
         l += f", switch=off"
 
+    if len(s) < 37:
+        l += f", short_read={len(s)}"
+
     return l
 
 if __name__ == '__main__':
