@@ -279,10 +279,11 @@ if __name__ == '__main__':
 
     args = p.parse_args()
 
-    ser = serial.Serial(args.device, 9600, timeout=2)
-
     while True:
+        ser = serial.Serial(args.device, 9600, timeout=5)
         ser.write(b'A')
+
+        time.sleep(1)
         s = ser.read_until(size=37)
 
         data = parse(s)
@@ -296,10 +297,10 @@ if __name__ == '__main__':
         else:
             print_verbose_desc(s, data)
 
+        ser.close()
+
         if not args.repeat:
             break
 
         sys.stdout.flush()
         time.sleep(args.repeat)
-
-    ser.close()
