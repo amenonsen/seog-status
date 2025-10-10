@@ -297,10 +297,10 @@ if __name__ == '__main__':
         else:
             print_verbose_desc(s, data)
 
+        sys.stdout.flush()
         ser.close()
 
         if not args.repeat:
             break
 
-        sys.stdout.flush()
         time.sleep(args.repeat)
