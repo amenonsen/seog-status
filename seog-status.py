@@ -117,6 +117,7 @@ def parse(s):
     for f in fields:
         if len(s) >= i+1:
             d[f] = chr(s[i])
+        i += 1
 
     return d
 
