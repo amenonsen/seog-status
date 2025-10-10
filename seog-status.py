@@ -41,71 +41,82 @@ import datetime
 def parse(s):
     d = {}
 
-    try:
-        # 'R'unning or 'I'nactive
+    # Status: 'R'unning or 'I'nactive
 
+    if len(s) >= 1:
         d['status'] = chr(s[0])
 
-        # 'B' means the load is on the grid (bypassing the inverter).
-        # 'F' means the load is on battery and/or solar.
+    # 'B' means the load is on the grid (bypassing the inverter).
+    # 'F' means the load is on battery and/or solar.
 
+    if len(s) >= 2:
         d['load'] = chr(s[1])
 
-        # The AC voltage and current reported appear to be the inverter's output
-        # voltage and current, i.e., correlated with the load on the inverter.
-        # If the load is on the grid, bypassing the inverter, these values are
-        # close to 0.
+    # The AC voltage and current reported appear to be the inverter's output
+    # voltage and current, i.e., correlated with the load on the inverter. When
+    # the load is on the grid, bypassing the inverter, these values represent
+    # the power drawn from the grid for charging.
 
+    if len(s) >= 4:
         d['ac_voltage'] = int(s[2:4].hex(), 16) / 10
+
+    if len(s) >= 6:
         d['ac_current'] = int(s[4:6].hex(), 16) / 10
 
-        # The current is reported as an absolute value, whether the battery is
-        # charging or discharging. We return a negative value if the "battery
-        # status" is 'y' (I expected "charging status" to be the field that
-        # determines the sign, but it's only "battery status" that I've seen
-        # vary so far.)
+    # The current is reported as an absolute value, whether the battery is
+    # charging or discharging. We make this value negative if the "battery
+    # status" is 'y'. (I expected "charging status" to be the field that
+    # determines the sign, but I have seen only "battery status" varying.)
 
+    if len(s) >= 8:
         d['bat_voltage'] = int(s[6:8].hex(), 16) / 10
+
+    if len(s) >= 10:
         d['bat_current'] = int(s[8:10].hex(), 16) / 10
 
-        if len(s) >= 24:
-            bat_status = chr(s[25])
-            if bat_status == 'y':
-                d['bat_current'] *= -1
-
+    if len(s) >= 12:
         d['pv_voltage'] = int(s[10:12].hex(), 16) / 10
+
+    if len(s) >= 14:
         d['pv_current'] = int(s[12:14].hex(), 16) / 10
+
+    if len(s) >= 16:
         d['pv_power'] = int(s[14:16].hex(), 16)
 
-        # I'm just guessing at the right scale for the total kWh field. (The
-        # values I've seen reported for total/month seem inconsistent, so I'm
-        # probably not decoding it correctly here.)
+    # I'm just guessing at the right scale for the total kWh field. (The values
+    # I've seen reported for total/month seem inconsistent, so I'm probably not
+    # decoding it correctly here.)
 
+    if len(s) >= 18:
         d['pv_units'] = int(s[16:18].hex(), 16) / 1000
+
+    if len(s) >= 22:
         d['pv_total'] = int(s[18:22].hex(), 16) / 10_000_000
+
+    if len(s) >= 24:
         d['pv_month'] = int(s[22:24].hex(), 16) / 1000
 
+    if len(s) >= 25:
         d['fault'] = chr(s[24])
+
+    if len(s) >= 26:
         d['bat_status'] = chr(s[25])
+        if d['bat_status'] == 'y':
+            d['bat_current'] *= -1
+
+    if len(s) >= 27:
         d['charging_status'] = chr(s[26])
 
-        # I speculate that the following fields all toggle between 0x6E ('n')
-        # and 0x79 ('y'), but I don't know for sure. It does work that way for
-        # PV under-voltage and the inverter switch, at least.
+    # The following fields all toggle between 0x6E ('n') and 0x79 ('y').
 
-        d['inverter_uv'] = chr(s[27])
-        d['inverter_ov'] = chr(s[28])
-        d['battery_uv'] = chr(s[29])
-        d['battery_ov'] = chr(s[30])
-        d['overheating'] = chr(s[31])
-        d['tcs_fail'] = chr(s[32])
-        d['pv_ov'] = chr(s[33])
-        d['pv_uv'] = chr(s[34])
-        d['overload'] = chr(s[35])
-        d['switched_off'] = chr(s[36])
+    fields = [
+        'inverter_uv', 'inverter_ov', 'battery_uv', 'battery_ov', 'overheating', 'tcs_fail', 'pv_ov', 'pv_uv', 'overload', 'switched_off',
+    ]
 
-    except IndexError:
-        pass
+    i = 27
+    for f in fields:
+        if len(s) >= i+1:
+            d[f] = chr(s[i])
 
     return d
 
@@ -165,10 +176,58 @@ def print_verbose_desc(s, d):
         print(f"Inverter switched off: y")
 
 def short_desc(s, d):
-    l = f"status={d['status']}/{d['load']}/{d['bat_status']}/{d['charging_status']}"
-    l += f", AC=({d['ac_voltage']:5.1f}V; {d['ac_current']:4.1f}A)"
-    l += f", BAT=({d['bat_voltage']:4.1f}V; {d['bat_current']:5.1f}A)"
-    l += f", PV=({d['pv_voltage']:5.1f}V; {d['pv_current']:4.1f}A; {d['pv_power']:4.0f}W; {d['pv_units']:5.2f}kWh)"
+    l = f"status={d.get('status', '?')}/{d.get('load', '?')}/{d.get('bat_status','?')}/{d.get('charging_status')}"
+
+    l += f", AC=("
+    if 'ac_voltage' in d:
+        l += f"{d['ac_voltage']:5.1f}V"
+    else:
+        l += f"  ?.?V"
+
+    l += "; "
+    if 'ac_current' in d:
+        l += f"{d['ac_current']:4.1f}A"
+    else:
+        l += f" ?.?A"
+    l += f")"
+
+    l += f", BAT=("
+    if 'bat_voltage' in d:
+        l += f"{d['bat_voltage']:4.1f}V"
+    else:
+        l += f" ?.?V"
+
+    l += "; "
+    if 'bat_current' in d:
+        l += f"{d['bat_current']:5.1f}A"
+    else:
+        l += f"  ?.?A"
+    l += f")"
+
+    l += f", PV=("
+    if 'pv_voltage' in d:
+        l += f"{d['pv_voltage']:5.1f}V"
+    else:
+        l += f"  ?.?V"
+
+    l += "; "
+    if 'pv_current' in d:
+        l += f"{d['pv_current']:4.1f}A"
+    else:
+        l += f" ?.?A"
+
+    l += "; "
+    if 'pv_power' in d:
+        l += f"{d['pv_power']:4.0f}W"
+    else:
+        l += f" ???W"
+
+    l += "; "
+    if 'pv_units' in d:
+        l += f"{d['pv_units']:5.2f}kWh"
+    else:
+        l += f"??.??kWh"
+    l += f")"
 
     flags = [
         'fault', 'inverter_uv', 'inverter_ov', 'battery_uv', 'battery_ov',
