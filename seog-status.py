@@ -216,11 +216,11 @@ if __name__ == '__main__':
 
     args = p.parse_args()
 
-    ser = serial.Serial(args.device, 9600, timeout=1)
+    ser = serial.Serial(args.device, 9600, timeout=2)
 
     while True:
         ser.write(b'A')
-        s = ser.readline()
+        s = ser.read_until(size=37)
 
         data = parse(s)
 
