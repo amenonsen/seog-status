@@ -188,7 +188,7 @@ def short_desc(s, d):
 
     l += "; "
     if 'ac_current' in d:
-        l += f"{d['ac_current']:4.1f}A"
+        l += f"{d['ac_current']:5.1f}A"
     else:
         l += f" ?.?A"
     l += f")"
