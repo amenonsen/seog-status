@@ -102,6 +102,7 @@ def parse(s):
     if len(s) >= 26:
         d['bat_status'] = chr(s[25])
         if d['bat_status'] == 'y':
+            d['ac_current'] *= -1
             d['bat_current'] *= -1
 
     if len(s) >= 27:
