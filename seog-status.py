@@ -38,19 +38,20 @@ import datetime
 # 36 Byte in Hex=6E               (System Over Load)
 # 37 Byte in Hex=6E               (System Switched)
 
+
 def parse(s):
     d = {}
 
     # Status: 'R'unning or 'I'nactive
 
     if len(s) >= 1:
-        d['status'] = chr(s[0])
+        d["status"] = chr(s[0])
 
     # 'B' means the load is on the grid (bypassing the inverter).
     # 'F' means the load is on battery and/or solar.
 
     if len(s) >= 2:
-        d['load'] = chr(s[1])
+        d["load"] = chr(s[1])
 
     # The AC voltage and current reported appear to be the inverter's output
     # voltage and current, i.e., correlated with the load on the inverter. When
@@ -58,10 +59,10 @@ def parse(s):
     # the power drawn from the grid for charging.
 
     if len(s) >= 4:
-        d['ac_voltage'] = int(s[2:4].hex(), 16) / 10
+        d["ac_voltage"] = int(s[2:4].hex(), 16) / 10
 
     if len(s) >= 6:
-        d['ac_current'] = int(s[4:6].hex(), 16) / 10
+        d["ac_current"] = int(s[4:6].hex(), 16) / 10
 
     # The current is reported as an absolute value, whether the battery is
     # charging or discharging. We make this value negative if the "battery
@@ -69,78 +70,88 @@ def parse(s):
     # determines the sign, but I have seen only "battery status" varying.)
 
     if len(s) >= 8:
-        d['bat_voltage'] = int(s[6:8].hex(), 16) / 10
+        d["bat_voltage"] = int(s[6:8].hex(), 16) / 10
 
     if len(s) >= 10:
-        d['bat_current'] = int(s[8:10].hex(), 16) / 10
+        d["bat_current"] = int(s[8:10].hex(), 16) / 10
 
     if len(s) >= 12:
-        d['pv_voltage'] = int(s[10:12].hex(), 16) / 10
+        d["pv_voltage"] = int(s[10:12].hex(), 16) / 10
 
     if len(s) >= 14:
-        d['pv_current'] = int(s[12:14].hex(), 16) / 10
+        d["pv_current"] = int(s[12:14].hex(), 16) / 10
 
     if len(s) >= 16:
-        d['pv_power'] = int(s[14:16].hex(), 16)
+        d["pv_power"] = int(s[14:16].hex(), 16)
 
     # I'm just guessing at the right scale for the total kWh field. (The values
     # I've seen reported for total/month seem inconsistent, so I'm probably not
     # decoding it correctly here.)
 
     if len(s) >= 18:
-        d['pv_units'] = int(s[16:18].hex(), 16) / 1000
+        d["pv_units"] = int(s[16:18].hex(), 16) / 1000
 
     if len(s) >= 22:
-        d['pv_total'] = int(s[18:22].hex(), 16) / 10_000_000
+        d["pv_total"] = int(s[18:22].hex(), 16) / 10_000_000
 
     if len(s) >= 24:
-        d['pv_month'] = int(s[22:24].hex(), 16) / 1000
+        d["pv_month"] = int(s[22:24].hex(), 16) / 1000
 
     if len(s) >= 25:
-        d['fault'] = chr(s[24])
+        d["fault"] = chr(s[24])
 
     if len(s) >= 26:
-        d['bat_status'] = chr(s[25])
-        if d['bat_status'] == 'y':
-            d['ac_current'] *= -1
-            d['bat_current'] *= -1
+        d["bat_status"] = chr(s[25])
+        if d["bat_status"] == "y":
+            d["ac_current"] *= -1
+            d["bat_current"] *= -1
 
     if len(s) >= 27:
-        d['charging_status'] = chr(s[26])
+        d["charging_status"] = chr(s[26])
 
     # The following fields all toggle between 0x6E ('n') and 0x79 ('y').
 
     fields = [
-        'inverter_uv', 'inverter_ov', 'battery_uv', 'battery_ov', 'overheating', 'tcs_fail', 'pv_ov', 'pv_uv', 'overload', 'switched_off',
+        "inverter_uv",
+        "inverter_ov",
+        "battery_uv",
+        "battery_ov",
+        "overheating",
+        "tcs_fail",
+        "pv_ov",
+        "pv_uv",
+        "overload",
+        "switched_off",
     ]
 
     i = 27
     for f in fields:
-        if len(s) >= i+1:
+        if len(s) >= i + 1:
             d[f] = chr(s[i])
         i += 1
 
     return d
 
+
 def print_verbose_desc(s, d):
     print(">>>", datetime.datetime.now())
     print("<<<", s.hex())
 
-    status = d['status']
-    if status == 'R':
-        status = 'R (running)'
-    elif status == 'I':
-        status = 'I (inactive)'
+    status = d["status"]
+    if status == "R":
+        status = "R (running)"
+    elif status == "I":
+        status = "I (inactive)"
     print(f"Inverter status: {status}")
 
-    load = d['load']
-    if load == 'B':
-        load = 'B (grid)'
-    elif load == 'F':
-        if d.get('bat_status', 'n') == 'y':
-            load = 'F (battery)'
+    load = d["load"]
+    if load == "B":
+        load = "B (grid)"
+    elif load == "F":
+        if d.get("bat_status", "n") == "y":
+            load = "F (battery)"
         else:
-            load = 'F (solar)'
+            load = "F (solar)"
     print(f"Load on: {load}")
 
     print(f"AC voltage: {d['ac_voltage']}V")
@@ -157,90 +168,99 @@ def print_verbose_desc(s, d):
     print(f"Charging status: {d['charging_status']}")
 
     flags = {
-        'fault': "System fault",
-        'inverter_uv': "Inverter under voltage",
-        'inverter_ov': "Inverter over voltage",
-        'battery_uv': "Battery under voltage",
-        'battery_ov': "Battery over voltage",
-        'overheating': "System overheating",
-        'tcs_fail': "TCS fail",
-        'pv_ov': "PV over voltage",
-        'pv_uv': "PV under voltage",
-        'overload': "System overload",
+        "fault": "System fault",
+        "inverter_uv": "Inverter under voltage",
+        "inverter_ov": "Inverter over voltage",
+        "battery_uv": "Battery under voltage",
+        "battery_ov": "Battery over voltage",
+        "overheating": "System overheating",
+        "tcs_fail": "TCS fail",
+        "pv_ov": "PV over voltage",
+        "pv_uv": "PV under voltage",
+        "overload": "System overload",
     }
 
     for f in flags.keys():
-        v = d.get(f, 'n')
-        if v != 'n':
+        v = d.get(f, "n")
+        if v != "n":
             print(f"{flags[f]}: {v}")
 
-    if d.get('switched_off', 'n') == 'y':
+    if d.get("switched_off", "n") == "y":
         print(f"Inverter switched off: y")
 
+
 def short_desc(s, d):
-    l = f"status={d.get('status', '?')}/{d.get('load', '?')}/{d.get('bat_status','?')}/{d.get('charging_status', '?')}"
+    l = f"status={d.get('status', '?')}/{d.get('load', '?')}/{d.get('bat_status', '?')}/{d.get('charging_status', '?')}"
 
     l += f", AC=("
-    if 'ac_voltage' in d:
+    if "ac_voltage" in d:
         l += f"{d['ac_voltage']:5.1f}V"
     else:
         l += f"  ?.?V"
 
     l += "; "
-    if 'ac_current' in d:
+    if "ac_current" in d:
         l += f"{d['ac_current']:5.1f}A"
     else:
         l += f" ?.?A"
     l += f")"
 
     l += f", BAT=("
-    if 'bat_voltage' in d:
+    if "bat_voltage" in d:
         l += f"{d['bat_voltage']:4.1f}V"
     else:
         l += f" ?.?V"
 
     l += "; "
-    if 'bat_current' in d:
+    if "bat_current" in d:
         l += f"{d['bat_current']:5.1f}A"
     else:
         l += f"  ?.?A"
     l += f")"
 
     l += f", PV=("
-    if 'pv_voltage' in d:
+    if "pv_voltage" in d:
         l += f"{d['pv_voltage']:5.1f}V"
     else:
         l += f"  ?.?V"
 
     l += "; "
-    if 'pv_current' in d:
+    if "pv_current" in d:
         l += f"{d['pv_current']:4.1f}A"
     else:
         l += f" ?.?A"
 
     l += "; "
-    if 'pv_power' in d:
+    if "pv_power" in d:
         l += f"{d['pv_power']:4.0f}W"
     else:
         l += f" ???W"
 
     l += "; "
-    if 'pv_units' in d:
+    if "pv_units" in d:
         l += f"{d['pv_units']:5.2f}kWh"
     else:
         l += f"??.??kWh"
     l += f")"
 
     flags = [
-        'fault', 'inverter_uv', 'inverter_ov', 'battery_uv', 'battery_ov',
-        'overheating', 'tcs_fail', 'pv_ov', 'pv_uv', 'overload'
+        "fault",
+        "inverter_uv",
+        "inverter_ov",
+        "battery_uv",
+        "battery_ov",
+        "overheating",
+        "tcs_fail",
+        "pv_ov",
+        "pv_uv",
+        "overload",
     ]
     for f in flags:
-        v = d.get(f, 'n')
-        if v != 'n':
+        v = d.get(f, "n")
+        if v != "n":
             l += f", {f}={v}"
 
-    if d.get('switched_off', 'n') == 'y':
+    if d.get("switched_off", "n") == "y":
         l += f", switch=off"
 
     if len(s) < 37:
@@ -248,41 +268,43 @@ def short_desc(s, d):
 
     return l
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     p = argparse.ArgumentParser(
-        prog='seog-status',
+        prog="seog-status",
     )
 
     p.add_argument(
-        '-d', '--device',
-        default='/dev/ttyUSB0',
-        help="Read data from the given serial device"
+        "-d",
+        "--device",
+        default="/dev/ttyUSB0",
+        help="Read data from the given serial device",
     )
 
     p.add_argument(
-        '-s', '--short',
-        action='store_true',
-        help="Produce single-line output"
+        "-s", "--short", action="store_true", help="Produce single-line output"
     )
 
     p.add_argument(
-        '-r', '--repeat',
+        "-r",
+        "--repeat",
         type=int,
         metavar="nsecs",
         help="Repeat indefinitely after every <nsecs> seconds",
     )
 
     p.add_argument(
-        '-t', '--timestamp',
-        action='store_true',
-        help="Display timestamps before each output description"
+        "-t",
+        "--timestamp",
+        action="store_true",
+        help="Display timestamps before each output description",
     )
 
     args = p.parse_args()
 
     while True:
         ser = serial.Serial(args.device, 9600, timeout=5)
-        ser.write(b'A')
+        ser.write(b"A")
 
         time.sleep(1)
         s = ser.read_until(size=37)
