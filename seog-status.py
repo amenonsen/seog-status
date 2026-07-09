@@ -202,7 +202,7 @@ def short_desc(s, d):
     if "ac_current" in d:
         l += f"{d['ac_current']:5.1f}A"
     else:
-        l += f" ?.?A"
+        l += f"  ?.?A"
     l += f")"
 
     l += f", BAT=("
